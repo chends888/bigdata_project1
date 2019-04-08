@@ -15,10 +15,13 @@ CREATE TABLE project (
     projname VARCHAR(40),
     respid INT NOT NULL,
     catid INT,
+    creationdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX respind (respid),
     INDEX catind (catid),
     FOREIGN KEY (respid)
-        REFERENCES employee (id),
+        REFERENCES employee (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
 	FOREIGN KEY (catid)
         REFERENCES category (id)
 );
@@ -29,7 +32,11 @@ CREATE TABLE works (
     INDEX empind (empid),
     INDEX projind (projid),
     FOREIGN KEY (empid)
-        REFERENCES employee (id),
+        REFERENCES employee (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
     FOREIGN KEY (projid)
         REFERENCES project (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
