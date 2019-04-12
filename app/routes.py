@@ -80,12 +80,19 @@ def insertwork():
 SELECT ROUTES
 URL template: http://127.0.0.1:5000/endpoint?arg1=1&arg2=hello
 '''
-# @app.route('/')
-# def select():
-#     sqlconn = MySqlConn()
-#     testquery = sqlconn.run('SELECT * FROM employee;')
-#     sqlconn.connection.close()
-#     return jsonify(testquery)
+@app.route('/emp')
+def selectemp():
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('SELECT * FROM employee;')
+    sqlconn.connection.close()
+    return jsonify(testquery)
+
+@app.route('/proj')
+def selectproj():
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('SELECT * FROM project;')
+    sqlconn.connection.close()
+    return jsonify(testquery)
 
 @app.route('/projofcat')
 def selectprojofcat():
@@ -134,12 +141,9 @@ def selectcountprojofemp():
     empid = int(request.args.get('empid'))
 
     sqlconn = MySqlConn()
-    testquery = sqlconn.run('SELECT COUNT(*) FROM wokrs WHERE empid=%d;' %(empid))
+    testquery = sqlconn.run('SELECT COUNT(*) FROM works WHERE empid=%d;' %(empid))
     sqlconn.connection.close()
     return jsonify(testquery)
-
-
-
 
 
 
@@ -162,7 +166,6 @@ def deletework():
     sqlconn.connection.close()
     return jsonify(testquery)
 
-
 @app.route('/deleteproj', methods=['POST'])
 def deleteproj():
     projid = int(request.args.get('projid'))
@@ -172,7 +175,6 @@ def deleteproj():
     sqlconn.connection.commit()
     sqlconn.connection.close()
     return jsonify(testquery)
-
 
 @app.route('/deleteemp', methods=['POST'])
 def deleteemp():
@@ -193,10 +195,11 @@ URL template: http://127.0.0.1:5000/endpoint?arg1=1&arg2=hello
 
 @app.route('/updateemp', methods=['POST'])
 def updateemp():
-    empname = request.args.get('empname')
+    empid = int(request.args.get('empid'))
+    newempname = request.args.get('newempname')
 
     sqlconn = MySqlConn()
-    testquery = sqlconn.run('UPDATE FROM employee WHERE employee.empname="%s";' %(empname))
+    testquery = sqlconn.run('UPDATE employee SET employee.empname="%s" WHERE employee.id=%d;' %(newempname, empid))
     sqlconn.connection.commit()
     sqlconn.connection.close()
     return jsonify(testquery)
@@ -205,10 +208,11 @@ def updateemp():
 
 @app.route('/updateproj', methods=['POST'])
 def updateproj():
-    projname = request.args.get('projname')
+    projid = int(request.args.get('projid'))
+    newprojname = request.args.get('newprojname')
 
     sqlconn = MySqlConn()
-    testquery = sqlconn.run('UPDATE FROM project WHERE project.projname="%s";' %(projname))
+    testquery = sqlconn.run('UPDATE project SET project.projname="%s" WHERE project.id=%d;' %(newprojname, projid))
     sqlconn.connection.commit()
     sqlconn.connection.close()
     return jsonify(testquery)
