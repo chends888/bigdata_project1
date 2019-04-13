@@ -14,7 +14,7 @@ CREATE TABLE project (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     projname VARCHAR(40),
     respid INT NOT NULL,
-    catid INT,
+    catid INT NOT NULL,
     creationdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX respind (respid),
     INDEX catind (catid),
@@ -40,15 +40,14 @@ CREATE TABLE works (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
-
-
 CREATE TABLE task (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     descript VARCHAR(500),
-    respid INT,
+    respid INT NOT NULL,
     projid INT NOT NULL,
     creationdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     finishdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    finished BOOLEAN,
     INDEX respind (respid),
     INDEX projind (projid),
     FOREIGN KEY (respid)

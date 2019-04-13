@@ -73,7 +73,23 @@ def insertwork():
     sqlconn.connection.close()
     return jsonify(testquery)
 
+'''URL template: http://127.0.0.1:5000/endpoint?arg1=1&finishdate=2019-03-12 21:11:10'''
+@app.route('/addtask', methods=['POST'])
+def inserttask():
+    respid = int(request.args.get('respid'))
+    projid = int(request.args.get('projid'))
+    try:
+        finishdate = request.args.get('finishdate')
+        sqlconn = MySqlConn()
+        testquery = sqlconn.run('INSERT INTO task (respid, projid, finishdate) VALUES (%d, %d, "%s");' %(respid, projid, finishdate))
+    except:
+        finishdate = 'CURRENT_TIMESTAMP'
+        sqlconn = MySqlConn()
+        testquery = sqlconn.run('INSERT INTO task (respid, projid, finishdate) VALUES (%d, %d, %s);' %(respid, projid, finishdate))
 
+    sqlconn.connection.commit()
+    sqlconn.connection.close()
+    return jsonify(testquery)
 
 
 '''
@@ -91,6 +107,13 @@ def selectemp():
 def selectproj():
     sqlconn = MySqlConn()
     testquery = sqlconn.run('SELECT * FROM project;')
+    sqlconn.connection.close()
+    return jsonify(testquery)
+
+@app.route('/task')
+def selecttask():
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('SELECT * FROM task;')
     sqlconn.connection.close()
     return jsonify(testquery)
 
@@ -145,8 +168,54 @@ def selectcountprojofemp():
     sqlconn.connection.close()
     return jsonify(testquery)
 
+@app.route('/projofcatname')
+def selectprojofcatname():
+    catname = request.args.get('catname')
 
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('''
+    SELECT project.projname
+    FROM project
+    INNER JOIN category ON project.catid=category.id
+    WHERE category.catname="%s";'''%(catname))
+    sqlconn.connection.close()
+    return jsonify(testquery)
 
+@app.route('/countprojofcatname')
+def selectcountprojofcatname():
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('''
+    SELECT COUNT(*), category.catname
+    FROM category
+    INNER JOIN project ON category.id=project.catid
+    GROUP BY category.catname;''')
+    sqlconn.connection.close()
+    return jsonify(testquery)
+
+@app.route('/weektasks')
+def selectweektasks():
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('''
+    SELECT TIMESTAMPDIFF(MINUTE, task.finishdate, CURRENT_TIMESTAMP) AS elapsedtime, employee.empname
+    FROM task
+    INNER JOIN employee ON task.respid=employee.id
+    HAVING elapsedtime<10080;''')
+    sqlconn.connection.close()
+    return jsonify(testquery)
+
+@app.route('/empweektasks')
+def selectempweektasks():
+    empid = int(request.args.get('empid'))
+
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('''
+    SELECT TIMESTAMPDIFF(MINUTE, task.finishdate, CURRENT_TIMESTAMP) AS elapsedtime, employee.empname
+    FROM task
+    INNER JOIN employee ON task.respid=employee.id
+    WHERE employee.id=%d
+    HAVING elapsedtime<10080;'''%(empid))
+    sqlconn.connection.close()
+    return jsonify(testquery)
 
 
 
@@ -186,6 +255,15 @@ def deleteemp():
     sqlconn.connection.close()
     return jsonify(testquery)
 
+@app.route('/deletetask', methods=['POST'])
+def deletetask():
+    taskid = int(request.args.get('taskid'))
+
+    sqlconn = MySqlConn()
+    testquery = sqlconn.run('DELETE FROM task WHERE task.id=%d;' %(taskid))
+    sqlconn.connection.commit()
+    sqlconn.connection.close()
+    return jsonify(testquery)
 
 
 '''

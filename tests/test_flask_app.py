@@ -5,7 +5,6 @@ import pytest
 
 import sys
 sys.path.append('../')
-# sys.path.insert(0, '/path/to/application/app/folder')
 import app
 
 import pymysql
@@ -18,7 +17,7 @@ def setup_db():
 
     con = pymysql.connect('localhost', user='chends', password='8888', db='mysql')
     with con.cursor() as cur:
-        with open('../db/fase0/fase0.sql') as f:
+        with open('../db/fase1/fase1.sql') as f:
             for l in f.read().split(';'):
                 if l.strip() == '': continue;
                 cur.execute(l)
@@ -28,6 +27,7 @@ def setup_db():
 '''
 INSERT tests
 '''
+
 def test_insert_emp(setup_db):
     client, con = setup_db
     empname = 'Joy'
@@ -81,6 +81,23 @@ def test_insert_work(setup_db):
     print(data)
     assert data[0][0] == empid
     assert data[0][1] == projid
+
+def test_insert_task(setup_db):
+    client, con = setup_db
+    catname = 'Back'
+    post = client.post('/addcat?catname=%s'%(catname))
+    empname = 'Joy'
+    client.post('/addemp?empname=%s'%(empname))
+    projname = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(projname, 1, 1))
+
+    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    with con.cursor() as cur:
+        cur.execute('SELECT * FROM task;')
+        data = cur.fetchall()
+    print(data)
+    assert data[0][2] == 1
+    assert data[0][3] == 1
 
 
 '''
@@ -198,10 +215,89 @@ def test_sel_count_proj_emp(setup_db):
     assert data[0][0] == 1
     assert len(data) == 1
 
+def test_sel_proj_of_catname(setup_db):
+    client, con = setup_db
+    cat1name = 'Back'
+    post = client.post('/addcat?catname=%s'%(cat1name))
+    cat2name = 'Front'
+    post = client.post('/addcat?catname=%s'%(cat2name))
+    emp1name = 'Joy'
+    client.post('/addemp?empname=%s'%(emp1name))
+    proj1name = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
+    proj2name = 'Front project 2'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj2name, 1, 2))
+
+    data = client.get('/projofcatname?catname=%s'%(cat1name))
+    data = json.loads(data.data)
+    assert data[0][0] == proj1name
+    assert len(data) == 1
+
+def test_sel_cout_proj_of_catname(setup_db):
+    client, con = setup_db
+    cat1name = 'Back'
+    post = client.post('/addcat?catname=%s'%(cat1name))
+    cat2name = 'Front'
+    post = client.post('/addcat?catname=%s'%(cat2name))
+    emp1name = 'Joy'
+    client.post('/addemp?empname=%s'%(emp1name))
+    proj1name = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
+    proj2name = 'Front project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj2name, 1, 2))
+    proj3name = 'Front project 2'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj3name, 1, 2))
+
+    data = client.get('/countprojofcatname')
+    data = json.loads(data.data)
+    assert data[0][0] == 1
+    assert data[1][0] == 2
+    assert len(data) == 2
+
+def test_sel_week_tasks(setup_db):
+    client, con = setup_db
+    cat1name = 'Back'
+    post = client.post('/addcat?catname=%s'%(cat1name))
+    emp1name = 'Joy'
+    client.post('/addemp?empname=%s'%(emp1name))
+    proj1name = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
+    client.post('/addtask?respid=%d&projid=%d&finishdate=%s'%(1, 1, '2019-03-12 21:11:10'))
+    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+
+    data = client.get('/weektasks')
+    data = json.loads(data.data)
+    print(data)
+    assert data[0][0] == 0
+    assert data[0][1] == emp1name
+    assert len(data) == 1
+
+def test_sel_emp_week_tasks(setup_db):
+    client, con = setup_db
+    cat1name = 'Back'
+    post = client.post('/addcat?catname=%s'%(cat1name))
+    emp1name = 'Joy'
+    client.post('/addemp?empname=%s'%(emp1name))
+    emp2name = 'Joe'
+    client.post('/addemp?empname=%s'%(emp2name))
+    proj1name = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
+    client.post('/addtask?respid=%d&projid=%d&finishdate=%s'%(1, 1, '2019-03-12 21:11:10'))
+    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    client.post('/addtask?respid=%d&projid=%d&finishdate=%s'%(2, 1, '2019-03-12 21:11:10'))
+    client.post('/addtask?respid=%d&projid=%d'%(2, 1))
+
+    data = client.get('/empweektasks?empid=1')
+    data = json.loads(data.data)
+    print(data)
+    assert data[0][0] == 0
+    assert data[0][1] == emp1name
+    assert len(data) == 1
 
 '''
 DELETE tests
 '''
+
 def test_del_work(setup_db):
     client, con = setup_db
     catname = 'Coding'
@@ -251,10 +347,32 @@ def test_del_emp(setup_db):
     assert data[0][1] == emp2name
     assert len(data) == 1
 
+def test_del_task(setup_db):
+    client, con = setup_db
+    emp1name = 'Joy'
+    client.post('/addemp?empname=%s'%(emp1name))
+    catname = 'Back'
+    post = client.post('/addcat?catname=%s'%(catname))
+    proj1name = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
+
+    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+
+    client.post('/deletetask?taskid=%d'%(1))
+    data = client.get('/task')
+    data = json.loads(data.data)
+    assert data[0][0] == 2
+    assert data[0][2] == 1
+    assert data[0][3] == 1
+    assert len(data) == 1
+
+
 
 '''
 UPDATE tests
 '''
+
 def test_upd_emp(setup_db):
     client, con = setup_db
     emp1name = 'Joy'
