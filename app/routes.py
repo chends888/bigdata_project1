@@ -1,6 +1,7 @@
 import pymysql
 import functools
 from flask import jsonify, request
+from flask_api import status
 import flask
 
 
@@ -33,6 +34,8 @@ URL template: http://127.0.0.1:5000/endpoint?arg1=1&arg2=hello
 @app.route('/addemp', methods=['POST'])
 def insertemp():
     empname = request.args.get('empname')
+    if (empname == None):
+        return 'Employee name not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('INSERT INTO employee (empname) VALUES ("%s");' %(empname))
@@ -43,6 +46,8 @@ def insertemp():
 @app.route('/addcat', methods=['POST'])
 def insertcat():
     catname = request.args.get('catname')
+    if (catname == None):
+        return 'Category name not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('INSERT INTO category (catname) VALUES ("%s");' %(catname))
@@ -52,9 +57,17 @@ def insertcat():
 
 @app.route('/addproj', methods=['POST'])
 def insertproj():
+    try:
+        respid = int(request.args.get('respid'))
+    except:
+        return 'Invalid employee id', status.HTTP_400_BAD_REQUEST
+    try:
+        catid = int(request.args.get('catid'))
+    except:
+        return 'Invalid category id', status.HTTP_400_BAD_REQUEST
     projname = request.args.get('projname')
-    respid = int(request.args.get('respid'))
-    catid = int(request.args.get('catid'))
+    if (projname == None):
+        return 'Project name not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('INSERT INTO project (projname, respid, catid) VALUES ("%s", %d, %d);' %(projname, respid, catid))
@@ -64,8 +77,14 @@ def insertproj():
 
 @app.route('/addwork', methods=['POST'])
 def insertwork():
-    empid = int(request.args.get('empid'))
-    projid = int(request.args.get('projid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Invalid employee id', status.HTTP_400_BAD_REQUEST
+    try:
+        projid = int(request.args.get('projid'))
+    except:
+        return 'Invalid project id', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('INSERT INTO works (empid, projid) VALUES (%d, %d);' %(empid, projid))
@@ -76,16 +95,25 @@ def insertwork():
 '''URL template: http://127.0.0.1:5000/endpoint?arg1=1&finishdate=2019-03-12 21:11:10'''
 @app.route('/addtask', methods=['POST'])
 def inserttask():
-    respid = int(request.args.get('respid'))
-    projid = int(request.args.get('projid'))
     try:
-        finishdate = request.args.get('finishdate')
-        sqlconn = MySqlConn()
-        testquery = sqlconn.run('INSERT INTO task (respid, projid, finishdate) VALUES (%d, %d, "%s");' %(respid, projid, finishdate))
+        respid = int(request.args.get('respid'))
     except:
-        finishdate = 'CURRENT_TIMESTAMP'
+        return 'Invalid employee id', status.HTTP_400_BAD_REQUEST
+    try:
+        projid = int(request.args.get('projid'))
+    except:
+        return 'Invalid project id', status.HTTP_400_BAD_REQUEST
+    descript = request.args.get('descript')
+    if (descript == None):
+        return 'Task description not found', status.HTTP_400_BAD_REQUEST
+
+    finishdate = request.args.get('finishdate')
+    if (finishdate == None):
         sqlconn = MySqlConn()
-        testquery = sqlconn.run('INSERT INTO task (respid, projid, finishdate) VALUES (%d, %d, %s);' %(respid, projid, finishdate))
+        testquery = sqlconn.run('INSERT INTO task (descript, respid, projid) VALUES ("%s", %d, %d);' %(descript, respid, projid))
+    else:
+        sqlconn = MySqlConn()
+        testquery = sqlconn.run('INSERT INTO task (descript, respid, projid, finishdate) VALUES ("%s", %d, %d, "%s");' %(descript, respid, projid, finishdate))
 
     sqlconn.connection.commit()
     sqlconn.connection.close()
@@ -119,7 +147,10 @@ def selecttask():
 
 @app.route('/projofcat')
 def selectprojofcat():
-    catid = int(request.args.get('catid'))
+    try:
+        catid = int(request.args.get('catid'))
+    except:
+        return 'Category id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('SELECT * FROM project WHERE catid=%d;' %(catid))
@@ -128,7 +159,10 @@ def selectprojofcat():
 
 @app.route('/emponproj')
 def selectemponproj():
-    projid = int(request.args.get('projid'))
+    try:
+        projid = int(request.args.get('projid'))
+    except:
+        return 'Project id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('''
@@ -140,7 +174,10 @@ def selectemponproj():
 
 @app.route('/projofemp')
 def selectprojofemp():
-    empid = int(request.args.get('empid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Employee id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('''
@@ -152,7 +189,10 @@ def selectprojofemp():
 
 @app.route('/projofresp')
 def selectprojofresp():
-    respid = int(request.args.get('respid'))
+    try:
+        respid = int(request.args.get('respid'))
+    except:
+        return 'Project responsible not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('SELECT COUNT(*) FROM project WHERE respid=%d;' %(respid))
@@ -161,7 +201,10 @@ def selectprojofresp():
 
 @app.route('/countprojofemp')
 def selectcountprojofemp():
-    empid = int(request.args.get('empid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Employee id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('SELECT COUNT(*) FROM works WHERE empid=%d;' %(empid))
@@ -171,6 +214,8 @@ def selectcountprojofemp():
 @app.route('/projofcatname')
 def selectprojofcatname():
     catname = request.args.get('catname')
+    if (catname == None):
+        return 'Category name not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('''
@@ -205,7 +250,10 @@ def selectweektasks():
 
 @app.route('/empweektasks')
 def selectempweektasks():
-    empid = int(request.args.get('empid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Employee id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('''
@@ -226,8 +274,14 @@ URL template: http://127.0.0.1:5000/endpoint?arg1=1&arg2=hello
 
 @app.route('/deletework', methods=['POST'])
 def deletework():
-    empid = int(request.args.get('empid'))
-    projid = int(request.args.get('projid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Employee id not found', status.HTTP_400_BAD_REQUEST
+    try:
+        projid = int(request.args.get('projid'))
+    except:
+        return 'Project id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('DELETE FROM works WHERE empid=%d AND projid=%d;' %(empid, projid))
@@ -237,7 +291,10 @@ def deletework():
 
 @app.route('/deleteproj', methods=['POST'])
 def deleteproj():
-    projid = int(request.args.get('projid'))
+    try:
+        projid = int(request.args.get('projid'))
+    except:
+        return 'Project id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('DELETE FROM project WHERE project.id=%d;' %(projid))
@@ -247,7 +304,10 @@ def deleteproj():
 
 @app.route('/deleteemp', methods=['POST'])
 def deleteemp():
-    empid = int(request.args.get('empid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Employee id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('DELETE FROM employee WHERE employee.id=%d;' %(empid))
@@ -257,7 +317,10 @@ def deleteemp():
 
 @app.route('/deletetask', methods=['POST'])
 def deletetask():
-    taskid = int(request.args.get('taskid'))
+    try:
+        taskid = int(request.args.get('taskid'))
+    except:
+        return 'Task id not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('DELETE FROM task WHERE task.id=%d;' %(taskid))
@@ -273,8 +336,13 @@ URL template: http://127.0.0.1:5000/endpoint?arg1=1&arg2=hello
 
 @app.route('/updateemp', methods=['POST'])
 def updateemp():
-    empid = int(request.args.get('empid'))
+    try:
+        empid = int(request.args.get('empid'))
+    except:
+        return 'Employee id not found', status.HTTP_400_BAD_REQUEST
     newempname = request.args.get('newempname')
+    if (newempname == None):
+        return 'New employee name not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('UPDATE employee SET employee.empname="%s" WHERE employee.id=%d;' %(newempname, empid))
@@ -286,11 +354,37 @@ def updateemp():
 
 @app.route('/updateproj', methods=['POST'])
 def updateproj():
-    projid = int(request.args.get('projid'))
+    try:
+        projid = int(request.args.get('projid'))
+    except:
+        return 'Project id not found', status.HTTP_400_BAD_REQUEST
     newprojname = request.args.get('newprojname')
+    if (newprojname == None):
+        return 'New project name not found', status.HTTP_400_BAD_REQUEST
 
     sqlconn = MySqlConn()
     testquery = sqlconn.run('UPDATE project SET project.projname="%s" WHERE project.id=%d;' %(newprojname, projid))
+    sqlconn.connection.commit()
+    sqlconn.connection.close()
+    return jsonify(testquery)
+
+
+@app.route('/updatetask', methods=['POST'])
+def updatetask():
+    try:
+        taskid = int(request.args.get('taskid'))
+    except:
+        return 'Task id not found', status.HTTP_400_BAD_REQUEST
+    newdescript = request.args.get('newdescript')
+    finished = request.args.get('finished')
+    if (finished == None and newdescript == None):
+        return 'No parameters to update', status.HTTP_400_BAD_REQUEST
+    if (finished == None):
+        sqlconn = MySqlConn()
+        testquery = sqlconn.run('UPDATE task SET task.descript="%s" WHERE task.id=%d;' %(newdescript, taskid))
+    else:
+        sqlconn = MySqlConn()
+        testquery = sqlconn.run('UPDATE task SET task.finished=1 WHERE task.id=%d;' %(taskid))
     sqlconn.connection.commit()
     sqlconn.connection.close()
     return jsonify(testquery)

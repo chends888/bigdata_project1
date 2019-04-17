@@ -1,5 +1,5 @@
 import requests
-res = requests.post('http://127.0.0.1:5000/addtask?respid=1&projid=1&finishdate=2019-03-12 21:11:10')
+res = requests.post('http://127.0.0.1:5000/addtask?descript=%s&respid=%d&projid=%d&finishdate=%s'%('descript', 1, 1, '2019-04-15 21:11:10'))
 restext = res.text
 print(restext)
 print(res)

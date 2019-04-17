@@ -4,15 +4,15 @@ use dharmadb;
 
 CREATE TABLE employee (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    empname VARCHAR(50) NOT NULL
+    empname VARCHAR(50)
 );
 CREATE TABLE category (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    catname VARCHAR(25) NOT NULL
+    catname VARCHAR(25)
 );
 CREATE TABLE project (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    projname VARCHAR(40) NOT NULL,
+    projname VARCHAR(40),
     respid INT NOT NULL,
     catid INT NOT NULL,
     creationdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -42,11 +42,11 @@ CREATE TABLE works (
 );
 CREATE TABLE task (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    descript VARCHAR(500) NOT NULL,
+    descript VARCHAR(500),
     respid INT NOT NULL,
     projid INT NOT NULL,
     creationdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    finishdate DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    finishdate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     finished BOOLEAN,
     INDEX respind (respid),
     INDEX projind (projid),

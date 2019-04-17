@@ -24,6 +24,8 @@ def setup_db():
     con.commit()
     yield client, con
 
+    con.close()
+
 '''
 INSERT tests
 '''
@@ -40,7 +42,7 @@ def test_insert_emp(setup_db):
 def test_insert_cat(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     with con.cursor() as cur:
         cur.execute('SELECT * FROM category;')
         data = cur.fetchall()
@@ -49,7 +51,7 @@ def test_insert_cat(setup_db):
 def test_insert_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     catid = 1
@@ -64,7 +66,7 @@ def test_insert_proj(setup_db):
 def test_insert_work(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     catid = 1
@@ -85,13 +87,14 @@ def test_insert_work(setup_db):
 def test_insert_task(setup_db):
     client, con = setup_db
     catname = 'Back'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     projname = 'Back project 1'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(projname, 1, 1))
 
-    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    descript = 'Add click button'
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 1, 1))
     with con.cursor() as cur:
         cur.execute('SELECT * FROM task;')
         data = cur.fetchall()
@@ -114,7 +117,7 @@ def test_sel_emp(setup_db):
 def test_sel_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     projname = 'Coding project 1'
@@ -127,9 +130,9 @@ def test_sel_proj(setup_db):
 def test_sel_proj_cat(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     catname = 'Design'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     proj1name = 'Coding project 1'
@@ -145,7 +148,7 @@ def test_sel_proj_cat(setup_db):
 def test_sel_emp_on_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     emp2name = 'Joe'
@@ -162,7 +165,7 @@ def test_sel_emp_on_proj(setup_db):
 def test_sel_proj_emp(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Coding project 1'
@@ -179,7 +182,7 @@ def test_sel_proj_emp(setup_db):
 def test_sel_count_proj_resp(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     emp2name = 'Joe'
@@ -198,7 +201,7 @@ def test_sel_count_proj_resp(setup_db):
 def test_sel_count_proj_emp(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     emp2name = 'Joe'
@@ -218,9 +221,9 @@ def test_sel_count_proj_emp(setup_db):
 def test_sel_proj_of_catname(setup_db):
     client, con = setup_db
     cat1name = 'Back'
-    post = client.post('/addcat?catname=%s'%(cat1name))
+    client.post('/addcat?catname=%s'%(cat1name))
     cat2name = 'Front'
-    post = client.post('/addcat?catname=%s'%(cat2name))
+    client.post('/addcat?catname=%s'%(cat2name))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Back project 1'
@@ -236,9 +239,9 @@ def test_sel_proj_of_catname(setup_db):
 def test_sel_cout_proj_of_catname(setup_db):
     client, con = setup_db
     cat1name = 'Back'
-    post = client.post('/addcat?catname=%s'%(cat1name))
+    client.post('/addcat?catname=%s'%(cat1name))
     cat2name = 'Front'
-    post = client.post('/addcat?catname=%s'%(cat2name))
+    client.post('/addcat?catname=%s'%(cat2name))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Back project 1'
@@ -257,40 +260,42 @@ def test_sel_cout_proj_of_catname(setup_db):
 def test_sel_week_tasks(setup_db):
     client, con = setup_db
     cat1name = 'Back'
-    post = client.post('/addcat?catname=%s'%(cat1name))
+    client.post('/addcat?catname=%s'%(cat1name))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Back project 1'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
-    client.post('/addtask?respid=%d&projid=%d&finishdate=%s'%(1, 1, '2019-03-12 21:11:10'))
-    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    descript = 'Description here'
+    client.post('/addtask?descript=%s&respid=%d&projid=%d&finishdate=%s'%(descript, 1, 1, '2019-04-15 21:11:10'))
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 1, 1))
 
     data = client.get('/weektasks')
     data = json.loads(data.data)
     print(data)
-    assert data[0][0] == 0
+    # assert data[0][0] == 0
     assert data[0][1] == emp1name
     assert len(data) == 1
 
 def test_sel_emp_week_tasks(setup_db):
     client, con = setup_db
     cat1name = 'Back'
-    post = client.post('/addcat?catname=%s'%(cat1name))
+    client.post('/addcat?catname=%s'%(cat1name))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     emp2name = 'Joe'
     client.post('/addemp?empname=%s'%(emp2name))
     proj1name = 'Back project 1'
+    descript = 'Description here'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
-    client.post('/addtask?respid=%d&projid=%d&finishdate=%s'%(1, 1, '2019-03-12 21:11:10'))
-    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
-    client.post('/addtask?respid=%d&projid=%d&finishdate=%s'%(2, 1, '2019-03-12 21:11:10'))
-    client.post('/addtask?respid=%d&projid=%d'%(2, 1))
+    client.post('/addtask?descript=%s&respid=%d&projid=%d&finishdate=%s'%(descript, 1, 1, '2019-04-15 21:11:10'))
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 1, 1))
+    client.post('/addtask?descript=%s&respid=%d&projid=%d&finishdate=%s'%(descript, 2, 1, '2019-04-15 21:11:10'))
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 2, 1))
 
     data = client.get('/empweektasks?empid=1')
     data = json.loads(data.data)
     print(data)
-    assert data[0][0] == 0
+    # assert data[0][0] == 0
     assert data[0][1] == emp1name
     assert len(data) == 1
 
@@ -301,7 +306,7 @@ DELETE tests
 def test_del_work(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     emp2name = 'Joe'
@@ -320,7 +325,7 @@ def test_del_work(setup_db):
 def test_del_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Coding project 1'
@@ -352,12 +357,13 @@ def test_del_task(setup_db):
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     catname = 'Back'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     proj1name = 'Back project 1'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
 
-    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
-    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    descript = 'Description here'
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 1, 1))
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 1, 1))
 
     client.post('/deletetask?taskid=%d'%(1))
     data = client.get('/task')
@@ -388,7 +394,7 @@ def test_upd_emp(setup_db):
 def test_upd_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Coding project 1'
@@ -403,5 +409,25 @@ def test_upd_proj(setup_db):
     assert len(data) == 1
 
 
+def test_upd_task(setup_db):
+    client, con = setup_db
+    emp1name = 'Joy'
+    client.post('/addemp?empname=%s'%(emp1name))
+    catname = 'Back'
+    client.post('/addcat?catname=%s'%(catname))
+    proj1name = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
 
+    descript = 'Description here'
+    client.post('/addtask?descript=%s&respid=%d&projid=%d'%(descript, 1, 1))
+
+    newdescript = 'New descript'
+    client.post('/updatetask?taskid=%d&newdescript=%s'%(1, newdescript))
+    data = client.get('/task')
+    data = json.loads(data.data)
+    assert data[0][0] == 1
+    assert data[0][1] == newdescript
+    assert data[0][2] == 1
+    assert data[0][3] == 1
+    assert len(data) == 1
 

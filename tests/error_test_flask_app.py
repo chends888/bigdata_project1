@@ -32,74 +32,53 @@ Wrong INSERT tests
 
 def test_insert_emp(setup_db):
     client, con = setup_db
-    empname = 'Joy'
-    client.post('/addemp?empname=%s'%(empname))
-    with con.cursor() as cur:
-        cur.execute('SELECT * FROM employee;')
-        data = cur.fetchall()
-    assert data[0][1] == 'Joe'
+    post = client.post('/addemp')
+    assert post.status_code == 400
 
 def test_insert_cat(setup_db):
     client, con = setup_db
-    catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
-    with con.cursor() as cur:
-        cur.execute('SELECT * FROM category;')
-        data = cur.fetchall()
-    assert data[0][0] == catname
+    post = client.post('/addcat')
+    assert post.status_code == 400
 
 def test_insert_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     catid = 1
-    respid = 2
-    projname = 'Coding project 1'
-    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(projname, respid, catid))
-    with con.cursor() as cur:
-        cur.execute('SELECT * FROM project;')
-        data = cur.fetchall()
-    assert data[0][1] == projname
+    respid = 1
+    post = client.post('/addproj?respid=%d'%(respid))
+    assert post.status_code == 400
+
 
 def test_insert_work(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     catid = 1
     respid = 1
     projname = 'Coding project 1'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(projname, respid, catid))
-    empid = 2
+    empid = 1
     projid = 1
 
-    client.post('/addwork?empid=%d&projid=%d'%(empid, projid))
-    with con.cursor() as cur:
-        cur.execute('SELECT * FROM works;')
-        data = cur.fetchall()
-    print(data)
-    assert data[0][0] == empid
-    assert data[0][1] == projid
+    post = client.post('/addwork?empid=%d'%(empid))
+    assert post.status_code == 400
 
 def test_insert_task(setup_db):
     client, con = setup_db
     catname = 'Back'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     empname = 'Joy'
     client.post('/addemp?empname=%s'%(empname))
     projname = 'Back project 1'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(projname, 1, 1))
 
-    client.post('/addtask?respid=%d&projid=%d'%(1, 1))
-    with con.cursor() as cur:
-        cur.execute('SELECT * FROM task;')
-        data = cur.fetchall()
-    print(data)
-    assert data[0][2] == 1
-    assert data[0][0] == 1
+    post = client.post('/addtask?respid=%d&projid=%d'%(1, 1))
+    assert post.status_code == 400
 
 
 '''
@@ -109,7 +88,7 @@ Wrong DELETE tests
 def test_del_work(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     emp2name = 'Joe'
@@ -119,16 +98,13 @@ def test_del_work(setup_db):
     client.post('/addwork?empid=%d&projid=%d'%(1, 1))
     client.post('/addwork?empid=%d&projid=%d'%(2, 1))
 
-    client.post('/deletework?empid=%d&projid=%d'%(2, 1))
-    data = client.get('/emponproj?projid=%d'%(1))
-    data = json.loads(data.data)
-    assert data[0][1] == emp2name
-    assert len(data) == 1
+    post = client.post('/deletework?projid=%d'%(1))
+    assert post.status_code == 400
 
 def test_del_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Coding project 1'
@@ -136,11 +112,8 @@ def test_del_proj(setup_db):
     proj2name = 'Coding project 2'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj2name, 1, 1))
 
-    client.post('/deleteproj?projid=%d'%(0))
-    data = client.get('/proj')
-    data = json.loads(data.data)
-    assert data[0][1] == proj2name
-    assert len(data) == 1
+    post = client.post('/deleteproj')
+    assert post.status_code == 400
 
 def test_del_emp(setup_db):
     client, con = setup_db
@@ -149,11 +122,8 @@ def test_del_emp(setup_db):
     emp2name = 'Joe'
     client.post('/addemp?empname=%s'%(emp2name))
 
-    client.post('/deleteemp?empid=%d'%(0))
-    data = client.get('/emp')
-    data = json.loads(data.data)
-    assert data[0][1] == emp2name
-    assert len(data) == 1
+    post = client.post('/deleteemp')
+    assert post.status_code == 400
 
 
 '''
@@ -166,26 +136,36 @@ def test_upd_emp(setup_db):
     client.post('/addemp?empname=%s'%(emp1name))
     newemp1name = 'Jessie'
 
-    client.post('/updateemp?newempname=%s&empid=%d'%(newemp1name, 1))
+    post = client.post('/updateemp?empid=%d'%(1))
     data = client.get('/emp')
     data = json.loads(data.data)
-    assert data[0][1] == emp1name
-    assert len(data) == 1
+    assert post.status_code == 400
 
 def test_upd_proj(setup_db):
     client, con = setup_db
     catname = 'Coding'
-    post = client.post('/addcat?catname=%s'%(catname))
+    client.post('/addcat?catname=%s'%(catname))
     emp1name = 'Joy'
     client.post('/addemp?empname=%s'%(emp1name))
     proj1name = 'Coding project 1'
     client.post('/addproj?projname=%s&respid=%d&catid=%d'%(proj1name, 1, 1))
 
-    newprojname = 'New Coding project 1'
-
-    client.post('/updateproj?newprojname=%s&projid=%d'%(newprojname, 1))
+    post = client.post('/updateproj?projid=%d'%(1))
     data = client.get('/proj')
     data = json.loads(data.data)
-    assert data[0][1] == proj1name
-    assert len(data) == 1
+    assert post.status_code == 400
 
+def test_upd_task(setup_db):
+    client, con = setup_db
+    catname = 'Back'
+    client.post('/addcat?catname=%s'%(catname))
+    empname = 'Joy'
+    client.post('/addemp?empname=%s'%(empname))
+    projname = 'Back project 1'
+    client.post('/addproj?projname=%s&respid=%d&catid=%d'%(projname, 1, 1))
+
+    post = client.post('/updatetask?newedescript="%s"&finished=1'%('New description'))
+    assert post.status_code == 400
+
+    post = client.post('/updatetask?taskid=%d'%(1))
+    assert post.status_code == 400
